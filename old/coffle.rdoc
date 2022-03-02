@@ -1,0 +1,221 @@
+This file contains notes about the implementation of coffle. For user
+documentation, see the file README.md.
+
+
+== Repository layout
+
+We keep the configuration file templates in the top level directory, with
+escaped names, and the coffle related files in a dotdir (see the notes on
+filename escaping below):
+
+repository
+|- config file templates  <-- escaped file names, never start with a period
+|- .coffle_source.yaml    <-- configures the directory as a coffle repository
+|- .svn                   <-- if the repository is under version control
+'- .coffle                <-- may contain more files in the future
+   '- work                <-- ignore this in version control
+      |- status.yaml
+      |- output           <-- unescaped file names, links point here
+      |- org              <-- unescaped file names
+      '- backup           <-- unescaped file names
+
+The .coffle_source.yaml file marks the directory as a coffle repository and
+contains some additional information and configuration (at the moment just
+the version of the repository layout).
+
+The coffle directory may contain more files/subdirectories in the future, for
+example, more elaborate repository configuration or user-defined template
+functionality (like the OpenSSH functionality included in coffle). It should
+therefore not be ignored in version control. All "transient" files are placed
+beneath .coffle/work, which should be ignored.
+
+This is an alternative repository layout, keeping the source files in a
+subdirectory:
+
+repository                   <-- may contain more files in the future
+|- coffle_source.yaml        <-- configures the directory as a coffle repository
+|- source
+|  '- config file templates  <-- escaped file names
+'- work                      <-- ignore this in version control
+   |- output                 <-- links point here
+   |- org
+   '- backup
+
+The first (and currently used) layout is simpler from a user's point of view,
+who is not usually interested in any files except his templates.
+
+In any case, we need to escape the filenames so we can use dotfiles for
+bookkeeping (e. g. .coffleignore, or local settings) or other purposes, like
+version control (we could potentially get around this by using a global
+ignore pattern).
+
+
+== File processing
+
+We use a symbolic link to a coffle work/output directory (beneath the
+repository) rather than copying the built files to the target. This allows us
+to recognize whether a file is currently under coffle control, even if the
+installed file has been modified manually by the user.
+
+In the work directories, we use the unescaped names (reason?).
+
+
+== Directory processing
+
+Unlike files, directories are not a symbolic link but are created in the target
+directory. This is necessary because a directory may contain both files that
+are under coffle control and files that are not (e. g. .ssh/config vs.
+.ssh/identity). Note that this means thay we cannot remove a directory when
+uninstalling, even if it was created when installing.
+
+On installing a directory entry, if a target directory alredy exists, its
+contents are not modified. If it does not exist, it is created. If it is a
+symlink to a directory, we accept it as an existing directory.
+
+For now, we don't allow overwriting a file with a directory or vice versa.
+
+We never make a backup of a directory. This is not necessary because an
+existing directory can not be overwritten with a file (refused) nor a directory
+(will be kept if it already exists).
+
+Notes on backups of directories (in case we want to make them one day):
+* Can/do we have to distinguish a file backup in a directory from a directory
+  backup?
+* What about uninstalling directories that contain non-coffle entries?
+
+
+== Ruby compatibility
+
+We're not using any gems because gems may not be available.
+
+We're not using lazy_attr_reader because Ruby 1.8.5 has no
+instance_variable_defined?
+
+We're including a definition of Kernel.require_relative in the main script
+because older Ruby version don't have it.
+
+
+== Skipping
+
+Notes:
+* We do not want to rebuild a skipped entry if the source has not changed.
+  However, we need to build an entry that is not yet built. Both "skipped" and
+  "not built" have no existing output file. In order to distinguish between
+  these two states, a "skipped" property is required.
+* The "skipped" property could be stored in a status file or as tag files.  In
+* order to determine when to rebuild a skipped entry, a timestamp is required
+  for skipped files as well as for built entries.
+* If the skipped property is not present, it is treated as false.
+* If skipped is false and the output does not exist, the entry is treated as
+  not yet built and is rebuilt.
+* If skipped is true, but the output exists, the entry is inconsistent and is
+  rebuilt.
+* After building, the skipped property is updated.
+* The skipped flag (also the built status) is only meaningful if the entry is
+  current.
+
+Open questions:
+* Is it better to also use the timestamp in the build file for built entries
+  rather than the timetamp of the output/org file?
+  
+With skipped property:
+built? |skipped? |meaning         |build condition
+-------+---------+----------------+------------
+false  |false    |not built       |always
+false  |true     |regular skipped |source newer than timestamp
+true   |false    |regular built   |source newer than org (or timestamp)
+true   |true     |inconsistent    |always
+
+
+== Backups
+
+Goals:
+* install (even with --overwrite) followed by uninstall => same as before
+
+Conclusions:
+* The only reason to use multiple backups would be to allow the user to replace
+  the the installed entries. However, this is probably neither easy nor simple.
+  Therefore, we only use a single backup.
+* If on "install" the backup is present and the target is "none" or "other", we
+  may not keep the backup because after "uninstall", we would have restored an
+  old backup. We also do not want to silently drop the backup after the user
+  deletes the coffle link. Thus, we have to refuse.
+
+
+== Install
+
+type      |target    |backup  |overwrite ||backup action |target action |comments
+----------+----------+--------+----------++--------------+--------------+-------------------
+*         |installed |*       |*         ||-             |-             |already current
+----------+----------+--------+----------++--------------+--------------+-------------------
+*         |none      |present |*         ||            refuse           |target was removed
+*         |wrong     |present |*         ||            refuse           |target was replaced
+----------+----------+--------+----------++--------------+--------------+-------------------
+*         |none      |none    |*         ||-             |install       |regular install
+----------+----------+--------+----------++--------------+--------------+-------------------
+file      |dir       |none    |*         ||            refuse           |file blocked by dir
+dir       |file      |none    |*         ||            refuse           |dir blocked by file
+file      |file      |none    |false     ||-             |-             |not overwriting
+file      |file      |none    |true      ||make          |install       |overwriting install
+
+Note:
+* For directory entries, there is no overwriting install, since an existing
+  directory will be treated as target=installed
+* removed and replaced is only detected when there is a backup, which is never
+  the case for directory entries.
+
+
+== Uninstall
+
+target    |backup  ||target action |backup action |comments
+----------+--------++--------------+--------------+-------------------------------------
+installed |present ||restore       |remove        |regular uninstall with restore
+installed |none    ||remove        |-             |regular uninstall without restore
+----------+--------++--------------+--------------+-------------------------------------
+none      |present ||            refuse           |target was removed
+other     |present ||            refuse           |target was replaced
+----------+--------++--------------+--------------+-------------------------------------
+none      |none    ||-             |-             |not installed (or: removed and not present before)
+other     |none    ||-             |-             |not installed (or: replaced and not present before)
+
+Note:
+* the backup must be removed, or the entry will be treated as removed (by the user)
+
+
+== Status file
+
+On startup, Coffle constructs the entries with their respective properties from
+the status file. at_exit, Coffle collects the properties and writes the status file.
+
+Status file: YAML. Structure:
+* version
+* entries=>
+** entry path=>
+*** {property=>value)}
+* ...
+
+Entries with no properties store nil rather than {}, it makes the YAML file
+more concise.
+
+
+== Manual tests
+
+* source configuration file error messages
+
+
+== Alternatives
+
+Alternatives:
+* Build into org only, copy to output only on "update"; also, uninstall a
+  skipped entry only on update
+* Recognize missing output files (as opposed to not built) by using a
+  built/built/skipped status
+* Store an installed flag, so we can selectively install files ("manual skip"),
+  "update" (process only the installed files) and automatically
+  uninstall/reinstall on skipped status change.
+* Add a link to the source directory in the target directory and use that link 
+  for linking the entries
+* All of the output (output, org, backup) could be put in a subdirectory of
+  the target, so it is not affected when the source is deleted
+  * we should still support installing into one target from multiple sources
+

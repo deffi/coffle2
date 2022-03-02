@@ -1,0 +1,167 @@
+== High priority
+
+* Add documentation: status "modified" is not updated
+* Need "coffle reset"?
+
+* escaping: can we have -.bashrc => .bashrc? Simplify escaping: just remove one
+  single leading underscore?
+
+* A way to skip whole directories
+
+* symlink to coffle script does not work
+* Handle modified files
+
+* SSH: error when invoking undefined key
+
+* Allow unskipping, so we can skip by default and build only on specified hosts
+
+* Versioning:
+  * need a target versioning mechanism
+  * status file version?
+
+* Allow uninstalling entries which are no longer present
+
+Build in
+* subdirectory of coffle directory
+* target directory
+* subdirectory of target directory
+
+Allow force rebuilding modified files
+
+Output warnings if there is no automessage in a file on build
+
+Documentation:
+* states of files/directories (and state transitions)
+
+
+== Low priority
+
+Cleanup:
+* coffle.rb
+  * source configuration class
+
+Operations:
+* remove org/output (if installed: refuse, or uninstall)
+  * should uninstall do this?
+* uninstall all entries no longer present
+* import (existierende Konfigurationsdatei in source kopieren, Dateiname escapen)
+
+Unit tests:
+* Use TestEntry whereever useful (especially in entry_test)
+* test Pathname.touch!
+* In full_test, also compare file contents
+* Test all test_helper methods, especially assert_tree_equal
+* Tests for target status methods
+* Full test with SSH define_keys
+* target path contains symlinks
+
+Build results:
+* regular build (done)
+* skip (ignore) (done)
+* remove (file should not exist) (needs status file entry)
+* symlink (does a symlink have an own timestamp?)
+* When adding more, we probably want
+  * to always use the timestamp from the status file
+  * a build_result value instead of flags
+
+Source files:
+* If possible, get rid of escaping
+  * syntax highlighting
+  * manual work
+* Allow different preprocessors
+  * distinguish preprocessor by file extension?
+  * additional file name escaping required
+  * Pro: different pp possible
+  * Con: collision possible
+  * Allow unprocessed files?
+    * special case of different preprocessor (pro/con see there)
+    * symlink directly (target->source instead of ->output)?
+      * Pro: changes to file possible
+      * Con: inconsistent
+* Whether a target is considered removed or replaced should not depend on
+  the existence of the backup, but instead on whether it was installed (keep a
+  list) (?)
+  * then we can distinguish removed (no backup) from not installed on uninstall
+  * either in a status file or in flag files
+
+Template processing:
+* SSH: better key parsing
+* Conditionals: host classes, user names
+
+UI:
+* Specify individual files on the command line
+  * Update automessage command to rebuild only this file
+* Allow specifying directories (operate on all contents?)
+* Message on build if file is not installed
+* colored messages
+  * rainbow gem can be used
+    * allow operation without gem (rubygems may not be available)
+* colored status
+* On build, only output changed files
+* allow help message/coffle init even in non-source-directory
+* better solution for installing a removed or replaced target:
+  * switches to drop the old back or the target
+  * operation drop_backup
+* similarly, allow uninstalling of removed or replaced target with a switch
+* tell the user what he did wrong and what to do on refuse
+* --verbose parameter for increased verbosity (we already have verbosity!)
+* coffle status: add table header
+
+Target:
+* Use .coffle_target link in target
+  * allows moving a source without breaking the link by copying, changing the
+    link, and deleting the old copy
+  * simplifies link targets
+  * useful for access from target directory (future extension)
+  * what about subdirectories?
+* Make it possible to use coffle commands from the target directory (and
+  subdirectories), using the actual (unescaped) filenames (allow completion)
+  * add .coffle_target/ to the target
+* Proper creation/checks of target status
+* Allow mutliple sources for one target
+
+Error conditions:
+* backup directory is blocked by a file
+* when a directory was refused, all other entries in this directory must also
+  be skipped (if the target directory for a file entry does not exist, we can
+  probably assume that it was refused and skip its contents)
+* Permission denied on install (e. g. parent directory not owned by user)
+
+Implementation:
+* Remove hack @included_messages - why is the file read twice (require should
+  only read it once)?
+* The operations should return a result object, with
+  * a message
+  * a performed flag
+  * a success flag
+* The preconditions in the specific entries should be checked in the entries,
+  or better yet (?), the methods just called and throw an exception/return a
+  result if they cannot do that
+
+Naming:
+* "Built" should include skipped and (successfully built) (need a name for
+  this, or that)
+* On directory names:
+  * the names output/org are bad
+  * install and build are already used for the operations
+  * The current interpretation is "process source to output (from where it is
+	installed) and copy to org". Better: "process source to (a) and copy to
+	(b) (from where it is installed)" - better outdated checks. (a) should
+	probably be called "output" (or "build" if we can rename the operation).
+
+Entries:
+* Directory entries:
+  * allow skipping directories
+  * no directory entries?
+    * (try to) create the containing directory for file entries
+    * pro: simplifies stuff
+	* con: empty directories not possible
+	* con: makes it more difficult to properly skip files whose path is blocked
+	  by another directory
+  * hierarchical entries structure?
+    * simplifies uninstalling directories
+    * Currently, directories are removed if empty after uninstall, and uninstall
+      is done in reverse order so the children are uninstalled first
+    * Directories that were not created by coffle should not be removed
+* Autodetect entries which are no longer present (compare source/org)
+
