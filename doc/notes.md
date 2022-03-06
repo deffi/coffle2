@@ -56,10 +56,12 @@ Open questions:
   * Should .coffleignore use regular expressions or glob patterns?
     * Pro regex:
       * More powerful
+      * Selectable case sensitivity?
     * Pro glob:
       * Like .gitignore
       * Easier to distinguish between "here" and "here and in subirectories"?
-
+    * Switchable?
+      * / might conflict with "this directory"
 
 Target
 ======
