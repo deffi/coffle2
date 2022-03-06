@@ -11,29 +11,68 @@ General notes:
     deleted or otherwise unavailable.
 
 
+Operations
+  * Install
+    * Builds first, where required
+    * Optionally overwrites (with backup) existing entries
+  * Uninstall
+    * Restores backups where they exist
+    * Removes directories that are now empty? Store in target state whether the
+      directory was empty before install?
+  * Edit
+    * Edits the corresponding file in the repo
+    * Re-builds the entry
+  * Status
+    * Status of all installed files? All files in the repo?
+  * Build
+  * Info
+  * Diff
+  * Merge
+  * Init or repo init?
+
+Changes from version 1:
+  * We don't treat directories as entries
+  * State goes into the target, in into the repository
+
+
+
+
 Repo
 ====
 
-Repo:
+Repo layout:
     .coffle/
         repository.toml
+    **/
+        file
+        _.dotfile
+        .coffleignore  - also a template
 
 repository.toml:
   * version
+
+Open questions:
+  * Configuring the template engine - maybe per file?
+  * Should .coffleignore use regular expressions or glob patterns?
+    * Pro regex:
+      * More powerful
+    * Pro glob:
+      * Like .gitignore
+      * Easier to distinguish between "here" and "here and in subirectories"?
 
 
 Target
 ======
 
 Target:
-    .coffle_target/
-        state.json
+    .coffle/
+        target.json
         repo ->
         backup/ ?
-        org/ ?
-        output/ ?
+        build/ ?
+        install/ ?
 
-state.json:
+target.json:
   * Version
   * For each entry:
     * skipped with timestamp
@@ -43,6 +82,8 @@ Future work
 ===========
 
 Additional features:
+  * Host-specific files in repo? - easier than large host() blocks
+  * Local files to be included (!) into the generated file? 
   * Set the file mode
   * Set the directory mode
   * Install multiple repos to a target (see below)
@@ -59,6 +100,7 @@ Installing multiple repos to a target:
   * As long as we only have one, use simpler commands
   * We probably need an install order
   * State in the target is mostly per-repo
+  * Backup, build, and install: per target or per target+repo? 
   * Files should be able to specify "skip" (file from previous repo is
     installed) or "suppress" (no file is installed, even if a previous repo had
     one)
@@ -66,3 +108,5 @@ Installing multiple repos to a target:
     * Concatenate?
     * Postprocess?
     * Install under different names so one can be sourced from the other
+      * "Previous" link for every repo, with the link of the first pointing to
+        the backup?
