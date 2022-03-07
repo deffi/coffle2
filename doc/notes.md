@@ -46,14 +46,14 @@ Repo layout:
     **/
         file
         _.dotfile
-        .coffleignore  - also a template
+        .coffle_ignore  - also a template
 
 repository.toml:
   * version
 
 Open questions:
   * Configuring the template engine - maybe per file?
-  * Should .coffleignore use regular expressions or glob patterns?
+  * Should .coffle_ignore use regular expressions or glob patterns?
     * Pro regex:
       * More powerful
       * Selectable case sensitivity?

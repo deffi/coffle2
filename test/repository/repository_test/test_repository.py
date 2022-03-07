@@ -15,6 +15,14 @@ class RepositoryTest(unittest.TestCase):
             RepositoryEntry(repo, Path("subdir") / "subsubdir" / "bar"),
         }, set(repo.entries()))
 
+    def test_entries_ignore(self):
+        repo = Repository(Path(__file__).parent / "test_entries_ignore")
+
+        self.assertSetEqual({
+            RepositoryEntry(repo, Path("foo")),
+            RepositoryEntry(repo, Path("subdir") / "bar"),
+        }, set(repo.entries()))
+
 
 if __name__ == '__main__':
     unittest.main()
