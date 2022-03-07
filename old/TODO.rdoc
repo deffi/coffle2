@@ -2,29 +2,11 @@
 
 * Add documentation: status "modified" is not updated
 * Need "coffle reset"?
-
-* escaping: can we have -.bashrc => .bashrc? Simplify escaping: just remove one
-  single leading underscore?
-
 * A way to skip whole directories
-
-* symlink to coffle script does not work
 * Handle modified files
-
 * SSH: error when invoking undefined key
-
 * Allow unskipping, so we can skip by default and build only on specified hosts
-
-* Versioning:
-  * need a target versioning mechanism
-  * status file version?
-
 * Allow uninstalling entries which are no longer present
-
-Build in
-* subdirectory of coffle directory
-* target directory
-* subdirectory of target directory
 
 Allow force rebuilding modified files
 
@@ -47,12 +29,6 @@ Operations:
 * import (existierende Konfigurationsdatei in source kopieren, Dateiname escapen)
 
 Unit tests:
-* Use TestEntry whereever useful (especially in entry_test)
-* test Pathname.touch!
-* In full_test, also compare file contents
-* Test all test_helper methods, especially assert_tree_equal
-* Tests for target status methods
-* Full test with SSH define_keys
 * target path contains symlinks
 
 Build results:
@@ -164,4 +140,3 @@ Entries:
       is done in reverse order so the children are uninstalled first
     * Directories that were not created by coffle should not be removed
 * Autodetect entries which are no longer present (compare source/org)
-
