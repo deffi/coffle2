@@ -1,3 +1,4 @@
+from pathlib import Path
 import unittest
 
 from src.repository import IgnoreList
@@ -25,8 +26,15 @@ class IgnoreListTest(unittest.TestCase):
         self.assertFalse(ignore_list.matches("waldont"))
 
     def test_load(self):
-        ...
-        # TODO
+        ignore_list = IgnoreList.load(Path(__file__).parent / "test_load" / "ignore_list.txt")
+
+        self.assertListEqual([
+            "foo",
+            "foo.txt",
+            "ba*.txt",
+            "waldo",
+            "*.tmp",
+        ], ignore_list.patterns)
 
 
 if __name__ == '__main__':
