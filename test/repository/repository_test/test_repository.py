@@ -11,8 +11,8 @@ class RepositoryTest(unittest.TestCase):
         self.assertSetEqual({
             RepositoryEntry(repo, Path("foo")),
             RepositoryEntry(repo, Path("bar")),
-            RepositoryEntry(repo, Path("subdir") / "waldo"),
-            RepositoryEntry(repo, Path("subdir") / "fred"),
+            RepositoryEntry(repo, Path("subdir") / "foo"),
+            RepositoryEntry(repo, Path("subdir") / "subsubdir" / "bar"),
         }, set(repo.entries()))
 
 

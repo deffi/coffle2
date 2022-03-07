@@ -9,7 +9,9 @@ class Repository:
 
     def entries(self) -> Iterator[RepositoryEntry]:
         for directory in self._root.rglob(""):
-            # TODO .coffleignore
-            for file in directory.iterdir():
-                if file.is_file():
-                    yield RepositoryEntry(self, file.relative_to(self._root))
+            if not directory.name.startswith("."):
+                # TODO .coffleignore
+                for file in directory.iterdir():
+                    if not file.name.startswith("."):
+                        if file.is_file():
+                            yield RepositoryEntry(self, file.relative_to(self._root))
