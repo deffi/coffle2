@@ -36,6 +36,12 @@ class IgnoreListTest(unittest.TestCase):
             "*.tmp",
         ], ignore_list.patterns)
 
+    def test_load_missing(self):
+        ignore_list = IgnoreList.load(Path(__file__).parent / "test_load_missing" / "does_not_exist.txt")
+
+        self.assertListEqual([
+        ], ignore_list.patterns)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -11,11 +11,15 @@ class IgnoreList:
 
     @classmethod
     def load(cls, file: Path):
-        # Read patterns from file
-        patterns = [pattern.strip() for pattern in file.read_text().splitlines()]
+        if file.exists():
+            # Read patterns from file
+            patterns = [pattern.strip() for pattern in file.read_text().splitlines()]
 
-        # Remove empty strings
-        patterns = [pattern for pattern in patterns if pattern]
+            # Remove empty strings
+            patterns = [pattern for pattern in patterns if pattern]
+
+        else:
+            patterns = []
 
         return cls(patterns)
 
