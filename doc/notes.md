@@ -28,7 +28,8 @@ Operations
   * Info
   * Diff
   * Merge
-  * Init or repo init?
+  * repo init
+  * repo ignore
 
 Changes from version 1:
   * We don't treat directories as entries

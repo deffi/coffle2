@@ -8,6 +8,10 @@ class Repository:
     def __init__(self, root: Path):
         self._root = root
 
+    @property
+    def root(self):
+        return self._root
+
     def _entries_in(self, directory: Path) -> Iterator[RepositoryEntry]:
         ignore_list = IgnoreList.load(directory / ".coffle_ignore")
 
