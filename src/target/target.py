@@ -6,6 +6,10 @@ class Target:
         self._root = root
 
     @property
+    def root(self):
+        return self._root
+
+    @property
     def coffle_dir(self):
         return self._root / ".coffle"
 
