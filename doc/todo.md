@@ -7,3 +7,9 @@ Repo:
   * Check for duplicate names (post-unescape)
   * Can't have an entry called _coffle (for .coffle) because we will be
     using that name
+    * What happens if a repo file is removed and the target file is still there?
+    Then we won't have a target entry.
+
+Target:
+  * If a repo file is removed, the target file is still there, but we won't have
+    a target entry for it.

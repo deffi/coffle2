@@ -1,6 +1,9 @@
 General
 =======
 
+General ideas:
+  * Use an SQLite database instead of state files?
+
 General notes:
   * A directory cannot be simultaneously a coffle repository and a coffle target
   * All commands are intended to be run in the target or in a subdirectory of a
@@ -10,11 +13,43 @@ General notes:
     Also, repos may be read-only and the target should not break if the repo is
     deleted or otherwise unavailable.
 
+Build state:
+  * Not processed
+  * Processed:
+      * Built      -> Target file should exist
+      * Suppressed -> Target file should not exist
+      * Skipped    -> Leave target file in its original state
+
+Install state:
+  * Installed     -> Target file is a symlink to the install file
+  * Not installed -> Target file is missing or something else
+
+Questions:
+  * What happens if a file is removed from the repo?
+  * What happens if a file is newly created in the repository?
+  * What happens if a file becomes skipped after it has been installed?
+    * Remove the link
+    * Restore the backup?
+  * What if the file becomes unskipped after it was skipped?
+    * Install it, everything else would be annyoing
+  * For multiple repos: do we want to selectively install files from certain
+    repos?
+
+Ideas for change handling:
+  * "Installed" is a property of the repo, not of individual entries
+  * If we want to not install certain files, mark them as suppressed?
+  * Distinguish install with/without overwrite?
+  * Maybe we also want update with/without overwrite?
 
 Operations
   * Install
     * Builds first, where required
     * Optionally overwrites (with backup) existing entries
+  * Update
+    * Checks the repository
+    * Rebuilds all that changed
+    * Uninstalls files that are no longer built (removed from repo or now skipped)
+    * Installs new files automatically?
   * Uninstall
     * Restores backups where they exist
     * Removes directories that are now empty? Store in target state whether the
@@ -79,6 +114,7 @@ target.json:
   * Version
   * For each entry:
     * skipped with timestamp
+
 
 
 Future work
