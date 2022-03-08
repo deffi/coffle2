@@ -1,7 +1,7 @@
 import unittest
 from pathlib import PurePosixPath as PPath, PureWindowsPath as WPath, Path
 
-from file_name import unescape
+from src.repository.file_name import unescape
 
 
 class FileNameTest(unittest.TestCase):
